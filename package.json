@@ -1,0 +1,22 @@
+{
+  "name": "geeksx",
+  "version": "1.0.0",
+  "description": "极客思想-Java学习",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@vuepress/plugin-search": "^2.0.0-rc.121",
+    "sass-embedded": "^1.97.3",
+    "vuepress": "^2.0.0-rc.26"
+  },
+  "dependencies": {
+    "@vuepress/bundler-vite": "^2.0.0-rc.26",
+    "@vuepress/theme-default": "^2.0.0-rc.121"
+  }
+}
