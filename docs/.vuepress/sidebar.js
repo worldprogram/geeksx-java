@@ -1,6 +1,11 @@
 export const sidebar = {
   "/Java/": [
     {
+      text: "Java",
+      link: "/Java/",
+      children: [],
+    },
+    {
       text: "Java常见面试题",
       collapsible: false,
       children: [
