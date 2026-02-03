@@ -21,7 +21,7 @@ export default defineUserConfig({
         preprocessorOptions: {
           scss: {
             quietDeps: true,
-            silenceDeprecations: ["import", "legacy-js-api"],
+            silenceDeprecations: ["import", "legacy-js-api", "if-function", "color-functions"],
           },
         },
       },
@@ -45,7 +45,6 @@ export default defineUserConfig({
       mdEnhance: {
         hint: true,
         gfm: true,
-        container: true,
       },
     },
   }),
