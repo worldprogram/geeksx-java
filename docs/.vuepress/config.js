@@ -8,6 +8,12 @@ export default defineUserConfig({
   lang: "zh-CN",
   title: "极客思想",
   description: "Java学习知识库",
+  
+  // 网页图标配置
+  head: [
+    ['link', { rel: 'icon', href: '/images/logo.svg' }],
+    ['link', { rel: 'apple-touch-icon', href: '/images/logo.svg' }],
+  ],
 
   bundler: viteBundler({
     viteOptions: {

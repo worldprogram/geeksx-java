@@ -12,14 +12,14 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@vuepress/bundler-vite": "2.0.0-beta.60",
-    "@vuepress/client": "2.0.0-beta.60",
-    "@vuepress/utils": "2.0.0-beta.60",
+    "@vuepress/bundler-vite": "2.0.0-rc.2",
+    "@vuepress/client": "2.0.0-rc.2",
+    "@vuepress/utils": "2.0.0-rc.2",
     "prettier": "^3.8.1",
     "sass-embedded": "^1.97.3",
-    "vuepress": "2.0.0-beta.60",
-    "vuepress-plugin-auto-catalog": "^2.0.0-beta.166",
-    "vuepress-theme-hope": "2.0.0-beta.166"
+    "vuepress": "2.0.0-rc.2",
+    "vuepress-plugin-auto-catalog": "2.0.0-rc.20",
+    "vuepress-theme-hope": "2.0.0-rc.20"
   },
   "dependencies": {
     "caniuse-lite": "^1.0.30001766",
