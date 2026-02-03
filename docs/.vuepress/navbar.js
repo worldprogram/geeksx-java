@@ -1,7 +1,7 @@
 export const navbar = [
   { text: "首页", link: "/", icon: "house" },
-  { 
-    text: "Java", 
+  {
+    text: "Java",
     link: "/Java/",
     icon: "fa-brands fa-java",
   },
@@ -18,7 +18,13 @@ export const navbar = [
       {
         text: "常用工具",
         icon: "screwdriver-wrench",
-        children: [{ text: "在线 JSON 格式化", link: "https://www.json.cn/", icon: "file-code" }],
+        children: [
+          {
+            text: "在线 JSON 格式化",
+            link: "https://www.json.cn/",
+            icon: "file-code",
+          },
+        ],
       },
     ],
   },

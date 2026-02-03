@@ -491,7 +491,7 @@ JVM的解决方法就是桥接方法。
 ## 异常
 
 Java异常类层次结构图概览：
-![alt text](image-1.png)
+![alt text](./image-1.png)
 
 ### Throwable类常用方法有哪些？
 
@@ -620,7 +620,7 @@ Class s = classLoader.loadClass("com.example.SubjectService");
 - 缺点：
   - 反射的性能较低，因为它需要在运行时动态获取类的信息
   - 反射可以破坏封装性，因为它可以访问类的私有成员
-  
+
 ## 序列化与反序列化
 
 ### 什么是Java的序列化和反序列化？
