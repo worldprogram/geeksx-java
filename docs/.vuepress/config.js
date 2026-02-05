@@ -37,6 +37,10 @@ export default defineUserConfig({
     logo: "/images/logo.svg",
     repo: "worldprogram/geeksx-java",
     docsDir: "docs",
+    
+    // 图标资源配置
+    iconAssets: "fontawesome-with-brands",
+    
     navbar,
     sidebar,
     markdown: {
@@ -45,9 +49,6 @@ export default defineUserConfig({
     },
     plugins: {
       readingTime: true,
-      icon: {
-        assets: "fontawesome-with-brands",
-      },
       mdEnhance: {
       },
     },

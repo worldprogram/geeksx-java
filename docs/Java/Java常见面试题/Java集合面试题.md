@@ -319,3 +319,9 @@ public class HashSet<E> extends AbstractSet<E> implements Set<E>, Cloneable, Ser
 - TreeSet底层使用红黑树，能够按照添加的顺序遍历，排序的方式可以自定义。
 
 ### 无序性和不可重复性的含义是什么
+
+- 无序性不等于随机性，无序性是指存储的数据在底层数组中并非按照数组索引的顺序添加，而是根据数据的哈希值决定的。
+- 不可重复性是指添加的元素按照equals()判断时，返回false,需要同时重写equals()方法和hashCode()方法
+
+## Map
+
