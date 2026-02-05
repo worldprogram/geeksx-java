@@ -114,6 +114,208 @@ Java集合类主要由两个接口Collection和Map派生出来的，Collection�
 - 如果需要线程安全的队列，则使用 ConcurrentLinkedQueue 或 BlockingQueue。
 - 如果需要读写分离的线程安全的列表，则使用 CopyOnWriteArrayList。
 
-## List
+## List详解
 
 ### ArrayList了解吗？
+
+`ArrayList`的底层是动态数组，它的容量能动态增长。在添加大量元素前，应用可以使用`ensureCapacity`操作增加`ArrayList`实例的容量。ArryList继承了AbstractList类，实现了List接口。
+
+### ArrayList和Array(数组)的区别？
+
+`ArrayList`内部基于动态数组实现，比`Array`(静态数组)使用起来更加灵活：
+
+- `ArrayList`会根据实际存储的元素动态地扩容或缩容，而`Array`被创建之后就不能改变它的长度了。
+- `ArrayList`允许使用泛型来确保类型安全，而`Array`则不能。
+- `ArrayList`中只能存储对象。对于基本类型数据，需要使用其对于的包装类（如Integer、Double、Character、Boolean等）。`Array`可以直接存储基本数据类型，也可以存储对象。
+- `ArrayList`支持插入、删除、遍历等常见操作，并且提供了丰富的API操作方法，比如`add()`、`remove()`等。`Array`只是一个固定长度的数组，只能按照下标访问其中的元素，不具备动态添加、删除元素的能力。
+- `ArrayList`创建时不需要指定大小，而`Array`需要在创建时指定大小。
+
+### ArrayList的扩容机制？
+
+ArrayList的扩容本质就是计算出新的扩容数组的size后实例化，并将原有数组内容复制到新数组中去。默认情况下，**新的容量会是原容量的1.5倍** 以JDK1.8为例：
+
+```java
+public boolean add(E e) {
+    // 1. 检查是否需要扩容
+    ensureCapacityInternal(size + 1);  // Increments modCount!!
+    // 2. 新增元素
+    elementData[size++] = e;
+    return true;
+}
+// 每次在add()一个元素时，arrayList都会检查是否需要扩容，如果需要则调用ensureCapacityInternal()方法
+private void ensureCapacityInternal(int minCapacity) {
+    ensureExplicitCapacity(calculateCapacity(elementData, minCapacity));
+}
+
+private static int calculateCapacity(Object[] elementData, int minCapacity) {
+    // 如果传入的是个空数组则最小容量取默认容量与minCapacity之间的最大值
+    if (elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
+        return Math.max(DEFAULT_CAPACITY, minCapacity);
+    }
+    return minCapacity;
+}
+
+private void ensureExplicitCapacity(int minCapacity) {
+    modCount++;
+    // 若ArrayList已有的存储能力满足最低存储要求，则返回add直接添加元素；如果最低要求的存储能力>ArrayList的存储能力，则扩容
+    if (minCapacity - elementData.length > 0)
+        grow(minCapacity);
+}
+
+private void grow(int minCapacity) { 
+    // 获取elementData数组的内存空间长度
+    int oldCapacity = elementData.length;
+    // 扩容至原来的1.5倍
+    int newCapacity = oldCapacity + (oldCapacity >> 1);
+    // 检查容量是否足够
+    if (newCapacity - minCapacity < 0)
+        newCapacity = minCapacity;
+    // 若预设值大于默认的最大值，检查是否溢出
+    if (newCapacity - MAX_ARRAY_SIZE > 0)
+        newCapacity = hugeCapacity(minCapacity);
+    // 调用Arrays.copyOf()方法将elementData数组指向新的内存空间
+    // 并将原有数组内容复制到新数组中去
+    elementData = Arrays.copyOf(elementData, newCapacity);
+}
+
+```
+
+### 怎么在遍历ArrayList时移除一个元素？
+
+foreach删除时会导致快速失败问题，可以使用迭代器的remove方法
+
+```java
+Iterator itr = list.iterator();
+while(itr.hasNext()){
+    if (itr.next().equals(element)){
+        itr.remove();
+    }
+}
+```
+
+### ArrayList和Vector的区别？
+
+1. ArrayList在内存不够时扩容为1.5倍，而Vector扩容为2倍。
+2. ArrayList线程不安全，Vector线程安全。但是操作Vector效率比较低
+
+### Vector和Stack的区别？
+
+- `Vector`和`Stack`都是线程安全的，都是使用`synchronized`关键字修饰的。
+- `Stack`继承自`Vector`，`Stack`是一个后进先出（LIFO）的栈，而`Vector`是一个动态数组。
+
+随着Java并发编程的发展，`Vector`和`Stack`已经不再被推荐使用，因为`Vector`和`Stack`的线程安全实现方式存在效率问题。推荐使用并发集合类（例如`ConcurrentHashMap`、`ConcurrentLinkedQueue`等）
+
+### ArrayList可以添加null值吗？
+
+`ArrayList`可以添加`null`值，因为`ArrayList`内部使用`Object[]`数组来存储元素，`Object`类允许存储`null`值。`不过不建议向ArrayList中添加null值，因为null值无意义，会让代码难以维护比如忘记做判空处理就会导致空指针异常
+
+### ArrayList插入和删除元素的时间复杂度？
+
+对于插入：
+
+- 头部插入：时间复杂度O(n)，因为需要将数组中的元素向右移动一位。
+- 尾部插入：时间复杂度O(1)，因为只需要在数组末尾添加一个元素。当容量已达到极限并且需要扩容时，则需要执行一次O(n)的操作将原数组复制到新的更大的数组中，然后再执行O(1)的插入操作。
+- 中间插入/指定位置插入：时间复杂度O(n)，因为需要将插入位置后面的元素向右移动一位。
+
+对于删除：
+
+- 头部删除：时间复杂度O(n)，因为需要将数组中的元素向左移动一位。
+- 尾部删除：时间复杂度O(1)，因为只需要删除数组末尾的一个元素。
+- 中间删除/指定位置删除：时间复杂度O(n)，因为需要将删除位置后面的元素向左移动一位。
+
+### LinkedList插入和删除元素的时间复杂度？
+
+- 头部插入/删除：时间复杂度O(1)，因为只需要改变头指针的指向。
+- 尾部插入/删除：时间复杂度O(1)，因为只需要改变尾指针的指向。
+- 中间插入/删除：时间复杂度O(n)，因为需要先遍历到指定位置，然后改变指针的指向。
+
+### LinkedList为什么不能实现RandomAccess接口？
+
+`RabdomAccess`是一个标记接口，用来表明实现该接口的类支持随机访问（即可以通过索引快速访问元素）。由于`LinkedList`的底层数据结构是链表，内存地址不连续，只能通过指针来定位，不支持随机访问，所以不能实现`RandomAccess`接口。
+
+### ArrayList和LinkedList的区别？
+
+- 是否保证线程安全：都是非线程安全的。
+- 底层数据结构：ArrayList基于Object数组实现，LinkedList基于双向链表实现。
+- 插入和删除性能受元素位置的影响：
+  
+  - ArrayList的插入和删除性能受元素位置的影响。
+  - LinkedList的插入和删除性能不受元素位置的影响，因为只需要改变指针的指向。
+- 随机访问性能：`LinkedList`的随机访问性能比`ArrayList`要差，因为需要遍历链表。`ArrayList`的随机访问性能比`LinkedList`要好，因为不需要遍历链表。`
+- 内存空间占用：`ArrayList`的空间浪费主要体现在list列表的结尾会预留一定的容量空间，而`LinkedList`的空间花费主要体现在它的每一个元素都需要消耗比ArrayList更多的内存空间。
+
+### ArrayList和LinkedList如何选用？
+
+一般是不会用到LinkedList的，需要用到LinkedList的场景都可以使用ArrayList来代替。并且，性能通常会更好！
+
+选择ArrayList还是LinkedList主要取决于对集合的操作模式
+
+- 选择ArrayList的场景：读多写少，特别是需要频繁地通过索引进行随机访问
+- 选择LinkedList的场景：读少写多，需要频繁地插入和删除元素
+
+### LinkedList一定最适合元素增删场景吗？
+
+不一定，LinkedList的随机访问性能比ArrayList要差，所以如果需要频繁地通过索引进行随机访问，那么ArrayList会更合适。
+
+## Queue
+
+### Queue与Deque的区别？
+
+`Queue`是单端队列，只能从一端插入元素，另一端删除元素，实现上一般遵循先进先出规则
+
+`Deque`是双端队列，支持两端插入和删除，可以当作队列或栈使用，更加灵活，适用于需要从两端操作数据的场景。
+
+### 讲一下ArrayDeque
+
+`ArrayDeque`实现类双端队列的接口，内部使用循环数组实现，默认大小为16。它的特点有：
+
+1. 在两端添加、删除元素的效率较高
+2. 根据元素内容查找和删除的效率比较低
+3. 没有索引位置概念，不能通过索引访问元素
+
+### ArrayQueue与LinkedList的区别？
+
+`ArrayQueue`和`LinkedList`都实现了`Queue`接口，它们的区别为:
+
+- `ArrayQueue`是基于可变长的数组和双指针来实现，而`LinkedList`则通过链表来实现。
+- `ArrayQueue`不支持NULL存储，而`LinkedList`支持NULL存储。
+
+从性能的角度上，选用AraayDeque来实现队列比LinkedList更好。此外ArrayDeque也可以用于实现栈
+
+ArrayDeque和LinkedList都是线程不安全的，可以使用Collections工具类中synchronizedXxx()转换成线程同步。
+
+### 说一说PriorityQueue
+
+`PriorityQueue`是一个基于优先级堆的队列，它按照优先级顺序返回队列中的元素。
+
+- `PriorityQueue`利用了二叉堆的数据结构来实现，底层使用可变长的数组来存储数据
+- `PriorityQueue`通过堆元素的上浮和下沉，实现了在O(logn)的时间复杂度内插入和删除堆顶元素
+- `PriorityQueue`是非线程安全的，且不支持存储null元素和non-comparable的对象
+- `PriorityQueue`默认是小顶堆，但可以接收一个Comparator作为构造函数，从而来自定义元素优先级的先后。
+
+## Set
+
+### HashSet的底层原理？
+
+HashSet基于HashMap实现。放入HashSet中的元素实际上由HashMap的key来保存的。而HashMap的value则存储了一个静态的Object对象。
+
+```java
+public class HashSet<E> extends AbstractSet<E> implements Set<E>, Cloneable, Serializable {
+    private transient HashMap<E,Object> map;
+    private static final Object PRESENT = new Object();
+    public HashSet() {
+        map = new HashMap<>();
+    }
+}
+```
+
+### HashSet、LinkedHashSet、TreeSet区别?
+
+- `HashSet`、`LinkedHashSet`、`TreeSet`都是`Set`接口的实现类。`都能保证元素唯一，并且都不是线程安全的。
+- `HashSet`、`LinkedHashSet`和`TreeSet`的主要区别在于底层数据结构不同。HashSet底层数据结构是HashMap，LinkedHashSet底层数据结构是链表和哈希表，元素的插入和取出顺序满足FIFO。TreeSet底层数据结构是红黑树，元素是有序的，排序的方式有自然排序和定制排序。
+- 底层数据结构不同又导致这三者的应用场景不同。HashSet用于不需要保证元素插入和取出顺序的场景，LinkedHashSet用于需要保证元素插入和取出顺序满足FIFO的场景，TreeSet用于需要对元素进行自定义排序的场景。
+- HashSet是Set接口的主要实现类，HashSet的底层数据结构是HashMap，线程不安全，可以存储null值
+- LinkedHashSet是HashSet的子类，能够按照添加的顺序遍历
+- TreeSet底层使用红黑树，能够按照添加的顺序遍历，排序的方式可以自定义。
+
+### 无序性和不可重复性的含义是什么

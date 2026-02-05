@@ -37,14 +37,18 @@ export default defineUserConfig({
     logo: "/images/logo.svg",
     repo: "worldprogram/geeksx-java",
     docsDir: "docs",
-    iconAssets: "fontawesome-with-brands",
     navbar,
     sidebar,
+    markdown: {
+      hint: true,
+      gfm: true,
+    },
     plugins: {
       readingTime: true,
+      icon: {
+        assets: "fontawesome-with-brands",
+      },
       mdEnhance: {
-        hint: true,
-        gfm: true,
       },
     },
   }),
