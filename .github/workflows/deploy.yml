@@ -1,0 +1,47 @@
+name: Deploy VuePress to Server
+
+on:
+  push:
+    branches:
+      - master  # 当推送到 master 分支时触发
+
+  # 允许手动触发
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取所有历史记录，用于 git 相关功能
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build VuePress site
+        run: npm run docs:build
+
+      - name: Deploy to Server via SSH
+        uses: easingthemes/ssh-deploy@main
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
+          SOURCE: "docs/.vuepress/dist/"
+          TARGET: "/opt/geeksx/vuepress/dist"
+          EXCLUDE: "/node_modules/"
+          SCRIPT_BEFORE: |
+            whoami
+            ls -al
+          SCRIPT_AFTER: |
+            echo "部署完成"
+            ls -al /opt/geeksx/vuepress/dist

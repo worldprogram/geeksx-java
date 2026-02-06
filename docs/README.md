@@ -9,11 +9,11 @@ footerHtml: true
 
 ### ☕ Java 常见面试题
 
-- [Java基础](/Java基础/)
-- [Java集合](/Java基础/Java集合.md)
-- [Java并发](/Java基础/Java并发.md)
-- [JavaIO](/Java基础/JavaIO.md)
-- [JVM](/Java基础/JVM.md)
+- [Java基础面试题](/Java/Java常见面试题/Java基础面试题.md)
+- [Java集合面试题](/Java/Java常见面试题/Java集合面试题.md)
+- [Java并发面试题](/Java/Java常见面试题/Java并发面试题.md)
+- [JavaIO面试题](/Java/Java常见面试题/JavaIO面试题.md)
+- [JVM面试题](/Java/Java常见面试题/JVM面试题.md)
 
 ### 💾 数据库场景面试题
 

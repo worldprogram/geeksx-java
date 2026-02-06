@@ -325,3 +325,4 @@ public class HashSet<E> extends AbstractSet<E> implements Set<E>, Cloneable, Ser
 
 ## Map
 
+Map中常用的集合就是HashMap
