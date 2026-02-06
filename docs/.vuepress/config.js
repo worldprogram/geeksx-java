@@ -46,6 +46,9 @@ export default defineUserConfig({
     markdown: {
       hint: true,
       gfm: true,
+      code: {
+        lineNumbers: true, // 全局启用代码块行号
+      },
     },
     plugins: {
       readingTime: true,
