@@ -1,5 +1,4 @@
 node_modules/
-package-lock.json
 
 # VuePress cache and temp files
 docs/.vuepress/.cache/
