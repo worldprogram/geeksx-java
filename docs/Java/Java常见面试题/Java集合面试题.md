@@ -422,3 +422,74 @@ put方法流程：
 
 - 合理设置初始容量：如果在使用时可以预估HashMap存储的数据量大小，那么在创建时设置一个合适的初始容量，以避免频繁的扩容操作。Java8的HashMap默认的初始容量是16。
 - 调整负载因子：官方提供的默认负载因子是0.75，如果数据量较大，可以根据具体应用场景调整这个值。
+
+
+### HahsMap为什么线程不安全？
+
+- 多线程下扩容死循环。JDK1.7中的HashMap使用头插法插入元素，在多线程的环境下，扩容的时候有可能导致环形链表的出现，形成死循环 
+- 在JDK1.8中，在多线程环境下，put不安全，会发生数据覆盖的情况。
+
+JDK1.8中，put的不安全
+
+由于多线程对HashMap进行put操作，调用HashMap的putVal(),具体原因：
+
+
+第一种情况：
+1. 假设两个线程A、B都在进行put操作，并且hash函数计算出的下标是相同的；
+2. 当线程A执行完第6行由于时间片耗尽导致被挂起，而线程B得到时间片后在该下标处插入了元素，完成了正常的插入；
+3. 接着线程A获得时间片，由于之前已经进行了hash碰撞的判断，所以此时不会再进行判断，而是直接进行插入；
+4. 最终就导致了线程B插入的数据被线程A覆盖了，从而线程不安全。
+
+第二种情况：
+1. 代码的第40行处有个++size,线程A、B这两个线程同时进行put操作时，假设当前HashMap的size为10；
+2. 当线程A执行到第40行时，从主内存中获得size的值为10后准备进行+1操作，但是由于时间片耗尽只好让出cpu;
+3. 接着线程B拿到CPU后从主内存中拿到size的值进行+1操作，完成了put操作并将size=11写回主存；
+4. 接着线程A再次CPU并继续执行（此时size的值仍是10），当执行完put操作后，还是将size=11写回主存;
+5. 此时，线程A、B都进行了put操作，但是size的值只增加了1，所以说还是由于数据覆盖导致了线程不安全。
+
+```java
+1 final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
+2 											boolean evict) {
+3 	Node <K, V> [] tab; Node <K, V> p; int n, i;
+4	if ((tab = table) == null || (n = tab.length) == 0)
+5 		n = (tab = resize()).length;
+6	if ((p = tab[i = (n - 1) & hash]) == null) //
+        tab[i] = newNode(hash, key, value, null);
+    else {
+        Node < K, V > e;
+        K k;
+        if (p.hash == hash &&
+            ((k = p.key) == key || (key != null && key.equals(k))))
+            e = p;
+        else if (p instanceof TreeNode)
+            e = ((TreeNode <K, V> ) p).putTreeVal(this, tab, hash, key, value);
+        else {
+            for (int binCount = 0;; ++binCount) {
+                if ((e = p.next) == null) {
+                    p.next = newNode(hash, key, value, null);
+                    if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+                        treeifyBin(tab, hash);
+                    break;
+                }
+                if (e.hash == hash &&
+                    ((k = e.key) == key || (key != null && key.equals(k))))
+                    break;
+                p = e;
+            }
+        }
+        if (e != null) { // existing mapping for key
+            V oldValue = e.value;
+            if (!onlyIfAbsent || oldValue == null)
+                e.value = value;
+            afterNodeAccess(e);
+            return oldValue;
+        }
+    }
+    ++modCount;
+    
+40  if (++size > threshold)
+        resize();
+    afterNodeInsertion(evict);
+    return null;
+}
+```
