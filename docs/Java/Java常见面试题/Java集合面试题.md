@@ -493,3 +493,75 @@ JDK1.8中，put的不安全
     return null;
 }
 ```
+
+### HashMap和Hashtable的区别?
+
+HashMap和Hashtable都实现了Map接口
+
+1. null值：HashMap可以接受null的key和value,key为null的键值放在下标为0的头结点的链表中，而Hashtable则不行
+2. 线程安全性：HashMap是非线程安全的，Hashtable是线程安全的，jdk1.5提供了ConcurrentHashMap类，它是Hashtable的替代。因为线程安全的问题，HashMap要比Hashtable效率高一点。另外，Hashtable基本被淘汰，不要在代码中使用它；
+3. 继承和使用实现：Hashtable继承自Dictionary类，而HashMap则继承自AbstractMap类，并且实现了Map接口。
+4. 使用性能：Hashtable很多方法是同步方法，在单线程环境下它比HashMap要慢。
+5. 哈希值的使用不同：Hashtable直接使用对象的hashCode,而HashMap重新计算hash值
+6. 初始容量和扩容机制：Hashtable在创建时必须指定容量大小，且默认大小为11。而HashMap在创建时可以不指定容量大小，系统会自动分配初始容量，并采用2倍扩容机制。
+7. 迭代器：迭代器Iterator对Hashtable是安全的。而Iterator对HashMap是不安全的，因为迭代器被设计为工作于一个快照上，如果在迭代过程中其他线程修改了HashMap，迭代器将抛出ConcurrentModificationException异常。
+
+### HashMap和HashSet的区别？
+
+HashSet的底层就是基于HashMap实现的。
+
+### 讲一下TreeMap?
+
+TreeMap是一个能比较元素大小的Map集合，会对传入的key进行大小排序。可以使用元素的自然顺序，也可以使用集合中自定义的比较器来进行排序。
+
+```java
+public class TreeMap<K,V> extends AbstractMap<K,V> implements NavigableMap<K,V>, Cloneable, java.io.Serializable { }
+```
+
+TreeMap的继承结构：
+![alt text](./image-4.png)
+
+**TreeMap的特点：**
+1. TreeMap是有序的k-v集合，通过红黑树实现。根据键的自然顺序进行排序或根据提供的Comparator进行排序。
+2. TreeMap继承了AbstractMap类，实现了NavigableMap接口，支持一系列的导航方法，给定具体搜索目标，可以返回最接近的匹配项。
+
+### HashMap和TreeMap区别？
+
+TreeMap和HashMap都继承自AbstractMap类，但是TreeMap还继承了NavigableMap接口，因此TreeMap除了支持Map的所有方法外，还支持一系列的导航方法，给定具体搜索目标，可以返回最接近的匹配项。
+
+### LinkedHashMap的底层原理？
+
+HashMap是无序的，迭代HashMap所得到的元素的顺序并不是它们最初放到HashMap的顺序，即不能保持它们的插入顺序。
+
+LinkedHashMap继承于HashMap,是HashMap和LinkedList的融合体，具备两者的特性。每次put操作都会将entry插入到双向链表的尾部。
+
+使用场景：
+  
+  - 缓存实现：可以根据访问顺序移除最久未使用的元素，常用语LRU缓存
+  - 数据存储：需要保持元素插入顺序的场景
+
+### IdentityHashMap是什么？
+
+IdentityHashMap是一个Map实现，和普通的HashMap不同，IdentityHashMap使用引用相等性来作为键的比较方式。换句话说，它使用==比较键，而不是equals方法，因此，只有当两个键的引用相同时，才被认为是相同的键
+
+使用场景：
+
+- 对象身份区分：适用于需要基于对象身份进行区分的场景，比如需要跟踪对象实例，而不是逻辑上的值相等。
+- 特殊缓存：有时用于构建缓存或映射结构，确保即使两个对象内容相同，但只要它们是不同的实例，就会被当作不同的键。
+
+主要特性：
+
+- 引用相等：
+- 哈希实现：
+- 允许null键和null值
+- 非线程安全
+
+### WeakHashMap是什么？
+
+WeakHashMap是一个Map实现，它使用弱引用作为键的引用方式。弱引用允许垃圾回收器在没有其他强引用指向该对象时指向该对象时回收它的内存。因此，当一个键不再被其他对象引用时，会自动删除与该键关联的条目。
+
+常用于缓存（内存敏感场景cache）的实现。当缓存中的键不再被其他地方引用时，可以自动移除相应的缓存条目，节省内存，防止内存泄漏。
+
+## 并发容器
+
+JDK提供的这些容器大部分在`java.util.concurrent`包中`
