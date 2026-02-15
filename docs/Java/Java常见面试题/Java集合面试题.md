@@ -565,3 +565,159 @@ WeakHashMap是一个Map实现，它使用弱引用作为键的引用方式。弱
 ## 并发容器
 
 JDK提供的这些容器大部分在`java.util.concurrent`包中`
+
+ - ConcurrentHashMap: 线程安全的hashMap
+ - CopyOnWriteArrayList: 线程安全的List,在读多写少的场合性能非常好，远远好于Vector
+ - ConcurrentLinkedQueue: 高效的并发队列，使用链表实现。可以看做一个线程安全的LinkedList,这是一个非阻塞队列
+ - BlockingQueue: 阻塞队列接口，JDK内部通过链表、数组等方式实现了这个接口。非常适用于作为数据共享的通道
+ - ConcurrentSkipListMap: 跳表的实现。使用跳表的数据结构进行快速查找。
+
+### 什么是fail fast?
+
+边遍历边修改集合就会产生fast-fail事件，抛出ConcurrentModificationException异常
+
+fast-fail是Java集合的一种错误机制。当多个线程对同一个集合进行操作时，就有可能会产生fast-fail事件。
+例如：当线程a正通过Iterator遍历集合时，线程b修改了集合的内容，此时modCount(记录集合操作过程的修改次数)会加1，不等于expectedModeCount,那么线程a访问集合的时候，就会抛出ConcurrentModificationException异常,产生fast-fail事件。
+
+解决方法：
+
+- 使用Collections.synchronizedList方法或在修改集合内容的地方加上synchronized关。这样的话，增删集合内容的同步锁会阻塞遍历操作，影响性能。
+- 使用CopyOnWriteArrayList来替换ArrayList。在对CopyOnWriteArrayList进行修改操作的时候，会拷贝一个新数组，对新的数组进行操作，操作完成后再把引用移到新的数组。
+
+### 什么是fail-safe?
+
+采用安全失败机制的集合容器，在遍历时不是直接在集合内容上访问的，而是先复制原有集合内容，在拷贝的集合上进行遍历。java.util.concurrent包下的容器都是fail safe,可以在多线程下并发使用，并发修改。
+
+原理：由于迭代时是对原集合的拷贝进行遍历，所以在遍历过程中对原集合所作的修改并不能被迭代器检测到，所以不会触发Concurrent Modification Exception。
+
+缺点：基于拷贝内容的优点是避免了Concurrent Modification Exception，但同样的，迭代器并不能访问到修改后的内容，即：迭代器遍历的是开始遍历哪一刻拿到的集合拷贝，在遍历期间原集合发生的修改迭代器是不知道的。
+
+### 哪些集合是线程安全的？哪些集合不安全？
+
+线程安全的集合：
+
+- Vector: 比ArrayList多了同步机制
+- Hashtable。
+- ConcurrentHashMap：是一种高效并且线程安全的集合。
+- Stack: 栈，也是线程安全的，继承于Vector。
+
+线程不安全的集合类：
+
+- HashMap
+- ArrayList
+- LinkedList
+- HashSet
+- TreeSet
+- TreeMap
+
+### 迭代器Iterator是什么？
+
+Iterator模式用同一种逻辑来遍历集合。它可以把访问逻辑从不同类型的集合中抽象出来，不需要了解集合内部实现便可以遍历集合元素，统一使用Iterator接口来遍历集合元素。它的特点是更加安全，因为它可以保证，在当前遍历到集合元素被更改的时候，就会抛出ConcurrentModificationException异常。
+
+```java
+public interface Collection<E> extends Iterable<E> { 
+    Iterator<E> iterator();
+}
+```
+
+主要有三个方法：hasNext()、next()、remove()
+
+### Iterator和ListIterator有什么区别？
+
+ListIterator是Iterator的增强版。
+
+- ListIterator遍历可以是逆向的，因为有previous()和hasPrevious()方法,而Iterator不可以。
+- ListIterator有add()方法，可以向List添加对象，而Iterator没有。
+- ListIterator可以定位当前的索引位置，因为有nextIndex()和previousIndex()方法，而Iterator没有。
+- ListIterator有set()方法，可以修改当前索引位置的元素，而Iterator没有。
+- ListIterator只能遍历List及其子类，Iterator可以遍历任意实现了Iterable接口的类。
+
+### Iterator与for-each循环的关系
+
+for-each循环实际上是对Iterator的一种简化形式。背后是通过Iterator实现的。
+
+不过for-each适合只遍历而不进行删除等操作。如果需要在遍历过程中修改集合内容，则需要使用Iterator。
+
+因为iterator在遍历集合的过程中，如果检测到集合的结构发生了非迭代器自身的修改（比如使用List#add()、List#remove()等直接修改集合），则抛出ConcurrentModificationException异常。）这种机制称为“fail-fast”。
+
+为了避免这种情况发生，修改集合时应使用Iterator去操作集合，而不是直接操作集合。
+
+### 如何让一个集合不被修改？
+
+可以采用Collections包下的unmodifiableXXX方法,通过这个方法返回的集合，是不可以修改的。如果修改的话，会抛出java.lang.UnsupportedOperationException异常。
+
+```java
+List<String> list = new ArrayList<String>();
+list.add("1");
+Collection<String> clist = Collections.unmodifiableCollection(list);
+clist.add("2"); // 抛出java.lang.UnsupportedOperationException异常
+```
+
+对于List/Set/Map集合，Collections包都有相应的支持。
+当然，用Guava工具的Immutable类更好，比Collections包更有优势
+
+**那使用final关键字进行修饰可以实现吗**
+不可以。
+final关键字修饰的成员变量如果是引用类型的话，则表示这个引用的地址值是不能改变的，但是这个引用所指向的对象里面的内容还是可以改变的。
+而集合类都是引用类型，所以final关键字修饰的集合类对象，集合类对象里面的内容是可以改变的。
+
+
+### CopyOnWrite
+
+Copy-On-Write，写时复制。当我们往容器添加元素时，不直接往容器添加，而是先将当前容器进行复制，复制出一个新的容器，然后往新的容器添加元素，添加完元素之后，再将原容器的引用指向新容器。这样做的好处是可以对`CopyOnWrite`容器进行并发的读，而不需要加锁，因为当前容器不会被修改。
+```java
+public boolean add(E e) { 
+    final ReentrantLock lock = this.lock;
+    lock.lock();
+    try { 
+        Object[] elements = getArray();
+        int len = elements.length;
+        Object[] newElements = Arrays.copyOf(elements, len + 1); // 复制新数组
+        newElements[len] = e;
+        setArray(newElements);// 原容器的引用指向新容器
+        return true;
+    } finally { 
+        lock.unlock();
+    }
+}
+
+```
+
+从JDK1.5开始Java的并发包里提供了两个使用CopyOnWrite机制实现的并发容器，它们是`CopyOnWriteArrayList`和`CopyOnWriteArraySet`
+
+缺点：
+
+- 内存占用问题。由于CopyOnWrite的写时复制机制，在进行写操作的时候，内存里会同时驻扎两个对象占用内存。
+- CopyOnWrite容器不能保证数据的实时一致性，可能读到旧数据
+
+### CopyOnWriteArrayList
+
+CopyOnWriteArrayList是Java并发包中提供的一个并发容器。CopyOnWriteArrayList相当于线程安全的ArrayList,CopyOnWriteArrayList使用了写时复制机制，当有新元素add到其中时，先从原有的数组拷贝一份出来，然后在新的数组做写操作，写完之后，再将原来的数组引用指向新数组。
+
+`CopyOnWriteArrayList`中add方法添加的时候是需要加锁的，保证同步，避免了多线程写的时候复制出多个副本。读的时候不需要加锁，如果读的时候有其他线程正在向CopyOnWriteArrayList中添加数据，还是可以读到旧数据。
+
+### CopyOnWriteArrayList和Vector
+
+- CopyOnWriteArrayList的写效率比Vector慢。CopyOnWriteArrayList写元素时是通过备份数组的方式实现的，当多线程同步激烈，数据量较大时会不停的复制数组，内存浪费严重。如果原数组的内容比较多的情况下，可能导致young gc或者full gc。
+- 弱一致性：不能用于实时读的场景，像拷贝数组、新增元素都需要时间，所以读取数据可能是旧的，虽然CopyOnWriteArrayList能做到最终一致性，但是还是没法满足实时性要求。
+
+CopyOnWriteArrayList适合读多写少的场景，例如黑白名单等。
+
+### CopyOnWriteArrayList和Collections.synchronizedList有什么区别？分别有什么优缺点？
+
+CopyOnWriteArrayList：是一个线程安全的 List 实现，特性就是写时复制。每次对 List 的修改操作(如 add,set,remove)都会复制创建一个新的底层数组。读操作不需要加锁，写操作需要加锁。
+
+- 优点： 读操作无锁：每次写操作都会创建并复制新数组，所以读写之间不冲突，因此读操作不需要加锁，能够提供非常高效的并发读性能。
+- 缺点：写操作开销大：每次写操作都会创建并复制新数组，且要将数据复制到新的数组中，在写操作频繁的场景下性能会较低。内存消耗大：每次写操作都会创建并复制新数组，在数据量大的情况下，同一时刻会存在两倍 List 大小的内存占用，开销较大。
+
+CopyOnWriteArrayList适合读多写少的场景。
+
+Collections.synchronizedList: 是一个包装方法，可以将任何list转换为线程安全的版本，它会对每个访问方法（如get()、set()、add()、remove()等）加锁。从而保证线程安全。
+优点：方便
+缺点：性能不高
+
+Collections.synchronizedList适用于简单将List转为线程安全版本临时使用的场景。特定的场景还需使用并发度高的JUC类。
+
+### ConcurrentHashMap
+
+多线程环境下，使用HashMap进行put操作会造成数据覆盖，应该使用支持多线程的ConcurrentHashMap
