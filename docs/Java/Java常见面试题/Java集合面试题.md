@@ -696,7 +696,7 @@ CopyOnWriteArrayList是Java并发包中提供的一个并发容器。CopyOnWrite
 
 `CopyOnWriteArrayList`中add方法添加的时候是需要加锁的，保证同步，避免了多线程写的时候复制出多个副本。读的时候不需要加锁，如果读的时候有其他线程正在向CopyOnWriteArrayList中添加数据，还是可以读到旧数据。
 
-### CopyOnWriteArrayList和Vector
+#### CopyOnWriteArrayList和Vector
 
 - CopyOnWriteArrayList的写效率比Vector慢。CopyOnWriteArrayList写元素时是通过备份数组的方式实现的，当多线程同步激烈，数据量较大时会不停的复制数组，内存浪费严重。如果原数组的内容比较多的情况下，可能导致young gc或者full gc。
 - 弱一致性：不能用于实时读的场景，像拷贝数组、新增元素都需要时间，所以读取数据可能是旧的，虽然CopyOnWriteArrayList能做到最终一致性，但是还是没法满足实时性要求。
@@ -720,4 +720,154 @@ Collections.synchronizedList适用于简单将List转为线程安全版本临时
 
 ### ConcurrentHashMap
 
-多线程环境下，使用HashMap进行put操作会造成数据覆盖，应该使用支持多线程的ConcurrentHashMap
+多线程环境下，使用HashMap进行put操作会造成数据覆盖，应该使用支持多线程的ConcurrentHashMap。
+
+JDK1.8ConcurrentHashMap取消了segment分段锁，而采用CAS和synchronized来保证并发安全。数据结构采用数组+链表/红黑树。synchronized只锁定当前链表或红黑树的首节点，相比1.7锁定HashEntry数组，锁粒度更小，支持更高的并发量。当链表长度过长时，Node会转换成TreeNode,提高查找速度。
+
+#### ConcurrentHashMap原理？put执行流程？
+
+hashMap的put方法过程：
+
+1. 计算出key的槽位
+2. 根据槽位类型进行操作
+3. 根据槽位中成员数量进行数据转换、扩容等操作
+
+![alt text](./image-5.png)
+
+如何高效的执行并发操作：根据上面hashMap的数据结构可以直观的看到，如果以整个容器为一个资源进行锁定，那么就变成了串行操作。而根据hash表的特性，具有冲突的操作只会出现在同一槽位，而与其它槽位的操作互不影响。基于此种判断，那么就可以将资源锁粒度缩小到槽位上，这样热点一分散，冲突的概率就大大降低，并发性能就能得到很好的增强。
+
+
+![alt text](./image-6.png)
+总体上来说，就是采用`Node+CAS+synchronized`来保证并发安全。数据结构跟`HashMap`1.8的结构类似，数组+链表/红黑树。Java8在链表长度超过一定阈值（8）时将链表（时间复杂度为O(N)）转换为红黑树（时间复杂度为O(logN)），以提升查询效率。
+
+Java8中，锁粒度更细，`synchronized`只锁定当前链表或红黑树的首节点，这样只要hash不冲突，就不会产生并发，就不会产生并发，就不会影响其他Node的读写，效率大幅提升。
+
+#### ConcurrentHashMap的get方法是否需要加锁？
+
+不需要加锁。
+通过volatile关键字，cocurrentHashMap能够确保get方法的线程安全，即使在写入发生时，读取线程仍然能够获取到最新的数据，不会引发并发问题
+
+具体是通过unsafe#getxxxvolatile和用volatile来修饰节点的val和next指针来实现的。
+
+#### ConcurrentHashMap和Hashtable的区别？
+
+相同点：ConcurrentHashMap和Hashtable都是线程安全的，可以在多个线程同时访问它们而不需要额外的同步措施。
+不同点：
+
+1. Hashtable通过使用synchronized修饰方法的方式来实现多线程同步，因此，Hashtable的同步会锁住整个数组，在高并发情况下，性能会非常差。ConcurrentHashMap使用数组+链表/红黑树结构和CAS原子操作实现；synchronized锁住桶，以及大量的CAS操作来保证线程安全。
+2. Hashtable读写都加锁，ConcurrentHashMap读操作不加锁，写操作加锁
+3. Hashtable默认的大小为11，当达到阈值后，每次按照以下公式对容量进行扩容：newCapacity = oldCapacity * 2 + 1。ConcurrentHashMap默认的初始容量为16，每次扩容的容量为oldCapacity * 2。
+4. Null键和值：ConcurrentHashMap不允许存储null键和null值，如果尝试存储null键或者null值，会抛出NullPointerException。Hashtable也不允许存储null键和null值。
+
+#### 为什么JDK8不用ReentrantLock而用synchronized？
+
+- 减少内存开销：如果使用ReentrantLock则需要节点继承AQS来获得同步支持，增加内存开销，而1.8中只有头结点需要进行同步
+- 内部优化：synchronized则是JVM直接支持的，JVM能够在运行时做出相应的优化措施：锁粗化、锁消除、锁自旋等等。
+
+#### 为什么key和value不能为null？
+
+HashMap中，null可以作为键和值都可以。而ConcurrentHashMap中，key和value不能为null。
+
+主要原因是：在并发环境下，使用null作为键或者值，可能会导致二义性问题。
+
+假如说,所有的Map都支持null的话，那么map.get(key)就可以返回null,但是，这时候就会存在一个不确定性，当你拿到null的时候，你是不知道他是因为本来就存了一个null进去还是说因为没找到而返回了null。
+
+在HashMap中，因为它的设计就是给单线程用的，所以我们map.get(key)返回null的时候，我们是可以通过map.containsKey(key)来判断的，如果它返回true，则认为是存了一个null，否则就是因为没找到而返回了null。
+
+但是，像ConcurrentHashMap这样，它是为并发而生的，它是要用在并发场景中，当我们map.get(key)返回null的时候，是没办法通过map.containsKey(key)(ConcurrentHashMap有这个方法，但不可靠)检查来准确的检测，因为在检测过程中可能会被其他线程锁修改，而导致检测结果并不可靠。
+
+所以，为了让ConcurrentHashMap的语义更加准确，不存在二义性的问题呢，他就不支持null。
+
+#### 集合线程安全不等于业务安全？
+
+需要知道的是，集合线程安全并不等于业务线程安全，并不是说使用了线程安全的集合如ConcurrentHashMap就能保证业务的线程安全。这是因为，ConcurrentHashMap只能保证put时是安全的，但是在put操作前如果还有其他的操作，那业务并不一定是线程安全的。
+
+例如存在复合操作（如put、get、remove、containsKey等）组成的操作，例如先判断某个键是否存在`containsKey(key)`，然后根据结果进行插入或更新`put(key,value)`。这种操作在执行过程中可能会被线程中断，导致结果不符合预期。
+
+例如，有两个线程A和B同时对`ConcurrentHashMap`进行复合操作，如下：
+
+```java
+// 线程A
+if (!map.containsKey(key)) {
+    map.put(key, value);
+}
+// 线程B
+if (!map.containsKey(key)) {
+    map.put(key, anotherValue);
+}
+```
+
+如果线程A和B的执行顺序是这样：
+
+1. 线程A判断map中不存在key
+2. 线程B判断map中不存在key
+3. 线程B将key-anotherValue放入map
+4. 线程A将key-value放入map
+
+那么最终的结果是（key,value）,而不是预期的anotherValue。这就是复合操作的非原子性导致的问题。
+
+#### 那如何保证`ConcurrentHashMap`的复合操作的原子性呢？`
+
+`concurrentHashMap`提供了一些原子性的复合操作，如`putIfAbsent`、`compute`、``computeIfAbsent`、`computeIfPresent`、`merge`等。这些方法都可以接受一个函数作为参数，根据给定的key和value来计算一个新的value,并且将其更新到map中。
+
+上面的代码可以改写为：
+```java
+// 线程A
+map.putIfAbsent(key, value);
+// 线程B
+map.putIfAbsent(key, anotherValue);
+```
+或者：
+```java
+// 线程A
+map.computeIfAbsent(key, k -> value);
+// 线程B
+map.computeIfAbsent(key, k -> anotherValue);
+```
+
+虽然通过加锁同步也可以解决，但是不建议使用加锁的同步机制，违背了使用`ConcurrentHashMap`的初衷。在使用`ConcurrentHashMap`时，尽量使用这些原子性的复合方法来保证原子性。
+
+#### SynchronizedMap和ConcurrentHashMap的区别?
+
+SynchronizedMap一次性锁住整张表来保证线程安全，所以每次只能有一个线程来访问map。
+
+JDK1.8ConcurrentHashMap采用CAS和synchronized来保证线程安全，数据结构采用数组+链表/红黑树。synchronized只锁定当前链表或红黑树的首节点，支持并发访问，修改。
+另外ConcurrentHashMap使用了一种不同的迭代方式。当Iterator被创建后集合再发生改变就不再抛出ConcurrentModificationException，取而代之的是在改变时new新的数据从而不影响原有的数据，Iterator完成后再将头指针替换新的数据，这样iterator线程可以使用原来老的数据，而写线程也可以并发的完成改变。
+
+### ConcurrentLinkedQueue
+
+非阻塞队列。高效的并发队列，使用链表实现。可以看做一个线程安全的LinkedList,通过CAS操作实现。
+如果对队列加锁的成本较高则适合用无锁的`ConcurrentLinkedQueue`来替代。适合在对性能要求相对较高，同时有多个线程对队列进行读写的场景。
+
+非阻塞队列中的几种主要方法：
+
+- `add(E e)`: 将元素e插入到队列末尾，如果插入成功，则返回true;如果插入失败（即队列已满），则会抛出异常；内部调用的就是offer(E e)方法。
+- `remove()`: 移除队首元素，若移除成功，则返回true;如果移除失败（队列为空），则会抛出异常；
+- `offer(E e)`: 将元素e插入到队列末尾，如果插入成功，则返回true;如果插入失败（即队列已满），则返回false。
+- `poll()`: 移除队首元素，若移除成功，则返回该元素；如果移除失败（队列为空），则返回null。
+- `peek()`: 获取队首元素，若队首元素不为空，则返回该元素；如果队首元素为空，则返回null。
+
+对于非阻塞队列，一般情况下建议使用offer、poll和peek方法，不建议使用add和remove方法。核心原因是它们处理“失败”的方式更加友好，避免了异常机制带来的开销和代码复杂度。
+
+### BlockingQueue
+### 什么是阻塞队列以及应用场景
+
+阻塞队列是`java.util.concurrent`包下重要的数据结构，`BlockingQueue`提供了线程安全的队列访问方式：当阻塞队列进行插入数据时，如果队列已满，线程会阻塞等待直到队列非满；从阻塞队列取数据时，如果队列已空，线程会阻塞等待直到队列非空。并发包下很多高级同步类的实现都是基于`BlockingQueue`实现的。`BlockingQueue`适合用于作为数据共享的通道。
+
+使用阻塞算法的队列可以用同一个锁（入队和出队用同一把锁）或两个锁（入队用一个锁，出队用另一个锁）等方式来实现。
+
+阻塞队列和一般的队列的区别就在于：
+
+1. 多线程支持，多个线程可以安全的访问队列。
+2. 阻塞操作，当队列为空时，消费线程会阻塞等待队列不为空；当队列满了的时候，生产线程就会阻塞直到队列不满。
+
+应用场景：
+
+- 生产者-消费者模型：在生产者-消费者模型中，生产者线程会向队列中添加数据，而消费者线程会从队列中取出数据进行处理。阻塞队列的自动阻塞机制使得它能够简单高效地实现生产者-消费者模型。
+- 线程池工作队列：在Java的线程池实现中，阻塞队列常用来保存任务。例如，ThreadPoolExecutor使用阻塞队列来管理提交但未执行的任务。
+- 实时数据处理系统：在需要处理实时数据的系统中，阻塞队列可以用于在数据生产模块和数据处理模块之间传递数据，确保数据以正确的顺序被处理，并且不会因过快的生产速度导致数据丢失。
+
+#### JDK提供的阻塞队列
+JDK7提供了7个阻塞队列，分别如下：
+
+1. ArrayBlockingQueue：有界阻塞队列，底层采用数组实现
