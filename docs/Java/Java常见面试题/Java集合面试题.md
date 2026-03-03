@@ -870,4 +870,18 @@ JDK1.8ConcurrentHashMap采用CAS和synchronized来保证线程安全，数据结
 #### JDK提供的阻塞队列
 JDK7提供了7个阻塞队列，分别如下：
 
-1. ArrayBlockingQueue：有界阻塞队列，底层采用数组实现
+**1. ArrayBlockingQueue**<br>
+有界阻塞队列，底层采用数组实现。`ArrayBlockingQueue`一旦创建，容量不能改变。其并发控制采用可重入锁来控制，不管是插入还是读取操作，都需要获取到锁才能进行操作。此队列按照先进先出（FIFO）原则对元素进行排序。默认情况下不能保证线程访问队列的公平性，参数`fair`可用于设置线程是否公平访问队列。为了保证公平性，通常会降低吞吐量。
+```
+private static ArrayBlockingQueue<Integer> blockingQueue = new ArrayBlockingQueue<Integer>(10,true);
+```
+**2. LinkedBlockingQueue**<br>
+`LinkedBlockingQueue`是一个基于单向链表的阻塞队列，可以当做无界队列，也可以当做有界队列来使用。通常在创建`LinkedBlockingQueue`对象时，需要指定队列的容量大小。此队列的默认和最大长度为`Integer.MAX_VALUE`。此队列按照先进先出的原则对元素进行排序。与`ArrayBlockingQueue`相比起来具有更高的吞吐量。
+
+**3. PriorityBlockingQueue**<br>
+支持优先级的无界阻塞队列。默认情况下元素采取自然顺序升序排列。也可以自定义类实现`compareTo()`方法来指定元素排序规则，或者初始化`PriorityBlockingQueue`时,指定构造参数`Comparator`来进行排序。
+`PriorityBlockingQueue`只能指定初始的队列大小，后面插入元素的时候，如果空间不够的话会自动扩容。
+`PriorityQueue`的线程安全版本。不可以插入null值，同时，插入队列的对象必须是可比较大小的（Comparable）,否则包ClassCastException。它的插入操作put方法不会block,因为它是无界队列（take方法在队列为空的时候会阻塞）
+
+
+
