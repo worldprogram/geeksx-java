@@ -897,4 +897,78 @@ tryTransfer方法：用来试探生产者传入的元素是否能被消费者消
 
 #### 原理
 
+JDK使用通知模式实现阻塞队列。所谓通知模式，就是当生产者往满的队列里添加元素时会阻塞生产者，当消费者消费了一个队列中的元素后，会通知生产者当前队列可用。
+
+ArrayBlockingQueueue使用Condition来实现：
+```java
+private final Condition notEmpty;
+private final Condition notFull;
+
+public ArrayBlockingQueue(int capacity, boolean fair) {
+    if (capacity <= 0) throw new IllegalArgumentException();
+    this.items = new Object[capacity];
+    lock = new ReentrantLock(fair);
+    notEmpty = lock.newCondition();
+    notFull = lock.newCondition();
+}
+
+public E take() throws InterruptedException {
+    final ReentrantLock lock = this.lock;
+    lock.lockInterruptibly();
+    try { 
+        while (count == 0) 
+            // 队列为空时，阻塞当前消费者
+            notEmpty.await();
+            return dequeue();
+        
+    } finally {
+        lock.unlock();
+    }
+}
+
+public void put(E e) throws InterruptedException {
+    checkNotNull(e);
+    final ReentrantLock lock = this.lock;
+    lock.lockInterruptibly;
+    try {
+        while (count == items.length)
+            notFull.await();
+            enqueue(e);
+    } finally {
+        lock.unlock();
+    }
+}
+
+private void enqueue(E x) {
+    final Object[] items = this.items;
+    items[putIndex] = x;
+    if (++putIndex == items.length)
+        putIndex = 0;
+        count++;
+        notEmpty.signal(); // 队列不为空时，通知消费者获取元素
+}
+```
+
+#### ArrayBlokingQueue和LinkedBlockingQueue区别?
+
+`ArrayBlockingQueue`和`LinkedBlockingQueue`是Java并发包中常用的两种阻塞队列实现，他们都是线程安全的。 不过，它们之间也存在下面这些区别：
+
+| 特性维度 | ArrayBlockingQueue | LinkedBlockingQueue |
+| :------: | :----------------: | :-----------------: |
+| 底层数据结构 | 基于数组              | 单向链表                |
+| 队列边界 | 有界队列，创建时必须指定固定容量           | 默认无界（容量为Integer.MAX_VALUE），也可创建为有界队列          |
+| 锁机制   |  使用单一锁（生产者和消费者共用一把锁） | 采用锁分离技术（生产用putLock,消费用takeLock） |
+| 内存占用与GC |  内存预分配，插入/删除不产生额外对象，GC压力小 | 动态创建Node节点，长时间运行下对GC影响较大 |
+| 并发吞吐量 | 一般。由于使用一把锁，生产与消费无法完全并行 | 较高。生产与消费操作通常可并行 |
+|性能稳定性| 较高。基于数组，性能表现稳定 | 较低。在大多数并发应用中性能可预测性较差 |
+
+**选择`ArrayBlockingQueue`时：**
+
+- 适用于队列大小固定、性能要求稳定、且生产者和消费者速率相对均衡的场景。
+- 例如，线程池的任务队列。
+
+**选择`LinkedBlockingQueue`时：**
+
+- 适用于任务量不确定、生产者和消费者速率差异较大，且需要高吞吐量的场景。
+- 例如，作为消息中间件的临时传输队列。但需警惕其无界特性可能导致的内存溢出风险，强烈建议创建时指定合适的容量。
 
