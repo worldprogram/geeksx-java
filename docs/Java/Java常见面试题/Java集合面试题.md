@@ -883,5 +883,18 @@ private static ArrayBlockingQueue<Integer> blockingQueue = new ArrayBlockingQueu
 `PriorityBlockingQueue`只能指定初始的队列大小，后面插入元素的时候，如果空间不够的话会自动扩容。
 `PriorityQueue`的线程安全版本。不可以插入null值，同时，插入队列的对象必须是可比较大小的（Comparable）,否则包ClassCastException。它的插入操作put方法不会block,因为它是无界队列（take方法在队列为空的时候会阻塞）
 
+**4.DelayQueue**<br>
+支持延迟获取元素的无界阻塞队列。队列使用`PriorityBlockingQueue`实现，队列中的元素必须实现`Delayed`接口，在创建元素时可以指定多久才能从队列中获取当前元素。只有在延迟期满后才能从队列中提取元素。
+
+**5.SynchronousQueue**<br>
+不存储元素的阻塞队列，每一个put必须等待一个take操作，否则不能继续添加元素。支持公平访问队列。`SynchronousQueue`可以看成一个传球手，负责把生产者线程处理的数据直接传递给消费者线程。队列本身不存储任何元素，非常适合传递性场景。`synchronousQueue`的吞吐量高于`LinkedBlockingQueue`和`ArrayBlockingQueue`。
+
+**6.LinkedTransferQueue**<br>
+由链表结构组成的无界阻塞TransferQueue队列。相对于其他阻塞队列，多了tryTransfer和transfer方法。
+
+transfer方法：如果当前有消费者正在等待接收元素（take或待时间限制的poll方法），transfer可以把生产者传入的元素立即传给消费者。如果没有消费者等待接收元素，则将元素放在队列的tail节点，并等到该元素被消费者消费了才返回。
+tryTransfer方法：用来试探生产者传入的元素是否能被消费者消费。如果当前有消费者正在等待接收元素（take或待时间限制的poll方法），tryTransfer方法会返回true。如果没有消费者等待接收元素，则返回false。
+
+#### 原理
 
 
