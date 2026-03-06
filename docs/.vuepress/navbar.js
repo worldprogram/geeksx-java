@@ -11,6 +11,7 @@ export const navbar = [
   { text: "微服务/分布式", link: "/微服务/分布式/", icon: "network-wired" },
   { text: "系统设计/场景", link: "/系统设计/场景/", icon: "object-group" },
   { text: "算法", link: "/算法/", icon: "microchip" },
+  { text: "项目问题", link: "/项目问题/", icon: "code" },
   {
     text: "更多资源",
     icon: "list",
