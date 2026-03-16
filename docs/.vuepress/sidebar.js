@@ -1,34 +1,25 @@
 export const sidebar = {
-  "/Java/": [
-    {
-      text: "Java",
-      link: "/Java/",
-      children: [],
-    },
+  "/Java常见面试题/": [
     {
       text: "Java常见面试题",
       collapsible: false,
       children: [
-        "/Java/Java常见面试题/Java基础面试题.md",
-        "/Java/Java常见面试题/Java集合面试题.md",
-        "/Java/Java常见面试题/Java并发面试题.md",
-        "/Java/Java常见面试题/JavaIO面试题.md"
+        "/Java常见面试题/Java基础面试题.md",
+        "/Java常见面试题/Java集合面试题.md",
+        "/Java常见面试题/Java并发面试题.md",
+        "/Java常见面试题/JavaIO面试题.md",
+        "/Java常见面试题/JVM面试题.md",
       ],
     },
+
+  ],
+  "/数据库常见面试题/": [
     {
-      text: "Java知识学习",
+      text: "数据库常见面试题",
       collapsible: false,
       children: [
-        "/Java/Java知识学习/Java基础.md",
-        "/Java/Java知识学习/Java集合.md",
+        "/数据库常见面试题/MySQL面试题.md"
       ],
-    },
-  ],
-  "/Java进阶/": [
-    {
-      text: "Java 进阶",
-      collapsible: false,
-      children: [],
     },
   ],
 };

@@ -2,10 +2,13 @@ export const navbar = [
   { text: "首页", link: "/", icon: "house" },
   {
     text: "Java",
-    link: "/Java/",
+    link: "/Java常见面试题/",
     icon: "fa-brands fa-java",
   },
-  { text: "数据库", link: "/数据库/", icon: "database" },
+  { text: "数据库", 
+    link: "/数据库常见面试题/", 
+    icon: "database" 
+  },
   { text: "Java框架", link: "/Java框架/", icon: "code" },
   { text: "计算机基础", link: "/计算机基础/", icon: "laptop-code" },
   { text: "微服务/分布式", link: "/微服务/分布式/", icon: "network-wired" },
