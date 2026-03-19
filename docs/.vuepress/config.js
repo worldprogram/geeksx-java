@@ -39,18 +39,16 @@ export default defineUserConfig({
     docsDir: "docs",
     
     // 图标资源配置
-    iconAssets: "fontawesome-with-brands",
-    
     navbar,
     sidebar,
     markdown: {
       hint: true,
       gfm: true,
-      code: {
-        lineNumbers: true, // 全局启用代码块行号
-      },
     },
     plugins: {
+      icon: {
+        assets: "fontawesome-with-brands",
+      },
       readingTime: true,
       mdEnhance: {
       },
