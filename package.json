@@ -16,6 +16,8 @@
     "@vuepress/plugin-catalog": "2.0.0-rc.121",
     "@vuepress/plugin-feed": "2.0.0-rc.121",
     "@vuepress/plugin-redirect": "2.0.0-rc.121",
+    "markmap-lib": "^0.18.12",
+    "markmap-toolbar": "^0.18.12",
     "prettier": "^3.8.1",
     "sass-embedded": "^1.97.3",
     "vuepress": "2.0.0-rc.26",

@@ -1,5 +1,6 @@
 export const navbar = [
   { text: "首页", link: "/", icon: "house" },
+  { text: "思维导图", link: "/思维导图/", icon: "diagram-project" },
   {
     text: "内容",
     icon: "book-open",

@@ -44,14 +44,14 @@ export default defineUserConfig({
     markdown: {
       hint: true,
       gfm: true,
+      markmap: true,
     },
     plugins: {
       icon: {
         assets: "fontawesome-with-brands",
       },
       readingTime: true,
-      mdEnhance: {
-      },
+      mdEnhance: {},
     },
   }),
 });
