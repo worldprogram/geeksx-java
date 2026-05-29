@@ -6,6 +6,7 @@ pageClass: mindmap-page
 
 # 极客思想知识结构图
 
+<!-- AUTO:MINDMAP:START -->
 ```markmap
 
 - 极客思想
@@ -36,8 +37,9 @@ pageClass: mindmap-page
       - Dubbo面试题
       - Nginx面试题
       - ElasticSearch面试题
-    - 项目问题
+    - 系统设计和场景面试题
       - 项目问题清单
+      - 设计模式常见面试题
   - 知识库
     - 计算机基础
     - Java框架
@@ -48,6 +50,7 @@ pageClass: mindmap-page
       - 认证授权
         - SSO单点登录
 ```
+<!-- AUTO:MINDMAP:END -->
 
 ## 入口导航
 

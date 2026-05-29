@@ -62,18 +62,21 @@ footerHtml: true
 
 <div class="gx-card gx-card-list">
 <h3>面试题分区</h3>
+<!-- AUTO:HOME-INTERVIEW-LINKS:START -->
 <ul>
 <li><a href="/面试题/Java常见面试题/">Java常见面试题</a></li>
 <li><a href="/面试题/数据库常见面试题/">数据库常见面试题</a></li>
 <li><a href="/面试题/Java框架常见面试题/">Java框架常见面试题</a></li>
 <li><a href="/面试题/计算机基础面试题/">计算机基础面试题</a></li>
 <li><a href="/面试题/微服务和分布式面试题/">微服务和分布式面试题</a></li>
-<li><a href="/面试题/项目问题/">项目问题</a></li>
+<li><a href="/面试题/系统设计和场景面试题/">系统设计和场景面试题</a></li>
 </ul>
+<!-- AUTO:HOME-INTERVIEW-LINKS:END -->
 </div>
 
 <div class="gx-card gx-card-list">
 <h3>知识库分区</h3>
+<!-- AUTO:HOME-KNOWLEDGE-LINKS:START -->
 <ul>
 <li><a href="/知识库/计算机基础/">计算机基础</a></li>
 <li><a href="/知识库/Java框架/">Java框架</a></li>
@@ -81,6 +84,7 @@ footerHtml: true
 <li><a href="/知识库/微服务/分布式/">微服务/分布式</a></li>
 <li><a href="/知识库/系统设计和实践/">系统设计和实践</a></li>
 </ul>
+<!-- AUTO:HOME-KNOWLEDGE-LINKS:END -->
 </div>
 
 </div>
@@ -89,7 +93,7 @@ footerHtml: true
 
 1. 先看 [全站知识结构思维导图](/思维导图/)，建立全局认知。
 2. 从 [Java基础面试题](/面试题/Java常见面试题/Java基础面试题.md) 与 [MySQL面试题](/面试题/数据库常见面试题/MySQL面试题.md) 进入高频核心。
-3. 结合 [项目问题清单](/面试题/项目问题/项目问题.md) 做项目表达与追问准备。
+3. 结合 [项目问题清单](/面试题/系统设计和场景面试题/项目问题.md) 做项目表达与追问准备。
 4. 回到知识库专题页，补齐你薄弱的底层原理和工程实践。
 
 ## 常用入口
